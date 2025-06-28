@@ -1,11 +1,13 @@
+version: "3.8"
+
 services:
   web:
     build: .
     container_name: taskmanager_ci_web
     ports:
-      - "80:80"                # This exposes your app to the public IP
+      - "80:80"
     volumes:
-      - ./app:/var/www/html   # Make sure your PHP app is inside `./app/`
+      - ./app:/var/www/html
     depends_on:
       - db
 
@@ -18,3 +20,6 @@ services:
     volumes:
       - db_data_ci:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db_data_ci:
