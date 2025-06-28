@@ -1,10 +1,10 @@
 FROM php:8.2-apache
 
-# Install mysqli extension
 RUN docker-php-ext-install mysqli
 
-# Copy app files to Apache server root
+COPY wait-for-db.sh /wait-for-db.sh
 COPY ./app /var/www/html/
 
-# Enable Apache mod_rewrite (optional but common)
-RUN a2enmod rewrite
+RUN chmod +x /wait-for-db.sh && a2enmod rewrite
+
+CMD ["/wait-for-db.sh"]
