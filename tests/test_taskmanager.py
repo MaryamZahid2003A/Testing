@@ -16,16 +16,14 @@ class TaskManagerTests(unittest.TestCase):
         options.add_argument('--disable-dev-shm-usage')
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(5)
-        cls.base_url = "http://localhost"
-
-    def generate_random_user(self):
-        return ''.join(random.choices(string.ascii_letters, k=6))
+        cls.base_url = "http://107.22.131.95"  # Updated with your server IP
+        cls.username = ''.join(random.choices(string.ascii_lowercase, k=6))
+        cls.password = "test123"
 
     def test_01_signup(self):
-        self.username = self.generate_random_user()
         self.driver.get(f"{self.base_url}/signup.php")
-        self.driver.find_element(By.NAME, "username").send_keys(self.username)
-        self.driver.find_element(By.NAME, "password").send_keys("test123")
+        self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
+        self.driver.find_element(By.NAME, "password").send_keys(type(self).password)
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("index.php", self.driver.current_url)
 
@@ -69,15 +67,15 @@ class TaskManagerTests(unittest.TestCase):
 
     def test_08_login_with_correct_credentials(self):
         self.driver.get(f"{self.base_url}/login.php")
-        self.driver.find_element(By.NAME, "username").send_keys(self.username)
-        self.driver.find_element(By.NAME, "password").send_keys("test123")
+        self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
+        self.driver.find_element(By.NAME, "password").send_keys(type(self).password)
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("index.php", self.driver.current_url)
 
     def test_09_login_with_wrong_password(self):
         self.driver.get(f"{self.base_url}/logout.php")
         self.driver.get(f"{self.base_url}/login.php")
-        self.driver.find_element(By.NAME, "username").send_keys(self.username)
+        self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
         self.driver.find_element(By.NAME, "password").send_keys("wrongpass")
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("Invalid password", self.driver.page_source)
