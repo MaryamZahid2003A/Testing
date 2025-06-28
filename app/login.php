@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   <div class="login-container">
     <h2>User Login</h2>
 
-    <?php if (!empty($error)): ?>
+    <?php if (isset($error) && !empty($error)): ?>
       <p class="error"><?= htmlspecialchars($error) ?></p>
     <?php endif; ?>
 
