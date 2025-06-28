@@ -1,4 +1,9 @@
 <?php
+session_start();
+if (!isset($_SESSION['username'])) {
+    header("Location: login.php");
+    exit;
+}
 include 'db.php';
 
 $sql = "SELECT * FROM tasks ORDER BY id DESC";
@@ -75,6 +80,8 @@ $result = $conn->query($sql);
 <body>
   <div class="container">
     <h1>Task Manager</h1>
+    <p>Welcome, <?= $_SESSION['username'] ?> | <a href="logout.php">Logout</a></p>
+
     <a href="add.php"><button>Add New Task</button></a>
 
     <table>
