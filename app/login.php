@@ -91,17 +91,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       text-align: center;
       margin-bottom: 10px;
     }
+    .success {
+      color: green;
+      text-align: center;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="login-container">
     <h2>User Login</h2>
-    <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
-    <form method="POST">
-      <input type="text" name="username" placeholder="Username" required />
-      <input type="password" name="password" placeholder="Password" required />
+
+    <?php if (!empty($error)): ?>
+      <p class="error"><?= htmlspecialchars($error) ?></p>
+    <?php endif; ?>
+
+    <?php if (isset($_GET['signup']) && $_GET['signup'] === 'success'): ?>
+      <p class="success">Signup successful! Please log in.</p>
+    <?php endif; ?>
+
+    <form method="POST" id="loginForm">
+      <input type="text" name="username" placeholder="Username" autocomplete="off" required />
+      <input type="password" name="password" placeholder="Password" autocomplete="off" required />
       <button type="submit">Login</button>
     </form>
+
     <div class="signup-link">
       <p>Don't have an account? <a href="signup.php">Sign up here</a></p>
     </div>
