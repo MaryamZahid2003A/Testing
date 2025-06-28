@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  web:
+    build: .
+    container_name: taskmanager_ci_web
+    ports:
+      - "80:80"                  # Changed host port to avoid conflicts
+    volumes:
+      - ./app:/var/www/html       # Code volume mounted here
+    depends_on:
+      - db
+
+  db:
+    image: mysql:5.7
+    container_name: taskmanager_ci_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+    volumes:
+      - db_data_ci:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  db_data_ci:                     # Different named volume to isolate from Part-I
