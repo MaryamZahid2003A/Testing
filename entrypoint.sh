@@ -1,11 +1,7 @@
 #!/bin/bash
-
-# Start Apache in background
+# Start Apache in the background
 apachectl -D FOREGROUND &
-
-# Wait for server to become available
-echo "Waiting for Apache to start..."
+# Wait a bit to ensure Apache starts
 sleep 5
-
-# Run your test file
+# Now run the test suite
 python3 -m unittest -v tests/test_taskmanager.py
