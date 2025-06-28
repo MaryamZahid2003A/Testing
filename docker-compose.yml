@@ -2,11 +2,12 @@ version: "3.8"
 
 services:
   web:
-    build:
-      context: ./app
+    build: .
     container_name: taskmanager_ci_web
     ports:
       - "80:80"
+    volumes:
+      - ./app:/var/www/html
     depends_on:
       - db
 
@@ -19,15 +20,6 @@ services:
     volumes:
       - db_data_ci:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  tester:
-    build:
-      context: .
-    container_name: taskmanager_ci_tester
-    depends_on:
-      - web
-    environment:
-      - BASE_URL=http://web
 
 volumes:
   db_data_ci:

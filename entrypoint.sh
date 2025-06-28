@@ -1,10 +1,11 @@
 #!/bin/bash
 
-# Start the PHP server to host your web app
-php -S 0.0.0.0:80 -t /var/www/html &
+# Start Apache in background
+apachectl -D FOREGROUND &
 
-# Wait for the server to come up
+# Wait for server to become available
+echo "Waiting for Apache to start..."
 sleep 5
 
-# Run Selenium tests
+# Run your test file
 python3 -m unittest -v tests/test_taskmanager.py
