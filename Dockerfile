@@ -1,10 +1,16 @@
-FROM php:8.2-apache
+FROM python:3.12-slim
 
-# Install mysqli extension
-RUN docker-php-ext-install mysqli
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    wget unzip curl gnupg2 chromium chromium-driver
 
-# Copy app files to Apache server root
-COPY ./app /var/www/html/
+# Install Python packages
+COPY requirements.txt /app/requirements.txt
+WORKDIR /app
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Enable Apache mod_rewrite (optional but common)
-RUN a2enmod rewrite
+# Copy your project
+COPY . /app
+
+# Default command (can be overridden by Jenkins)
+CMD ["pytest", "tests/"]
