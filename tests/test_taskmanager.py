@@ -20,6 +20,10 @@ class TaskManagerTests(unittest.TestCase):
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--window-size=1920,1080')
 
+        # Optional: Uncomment below line if using Chromium instead of Google Chrome
+        # options.binary_location = "/usr/bin/chromium-browser"
+
+        # Use explicit path to chromedriver
         chrome_service = Service("/usr/bin/chromedriver")
         cls.driver = webdriver.Chrome(service=chrome_service, options=options)
 
@@ -42,15 +46,6 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
-
-        # Wait for redirection to index.php, up to 10 seconds
-        try:
-            WebDriverWait(self.driver, 10).until(
-                lambda d: "index.php" in d.current_url
-            )
-        except Exception as e:
-            self.fail(f"Redirect to index.php failed. Current URL: {self.driver.current_url}")
-
         self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
