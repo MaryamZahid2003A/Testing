@@ -43,11 +43,15 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
 
-        # Wait for redirect to index.php
-        WebDriverWait(self.driver, 10).until(
-            EC.url_contains("index.php")
-        )
-        self.assertIn("index.php", self.driver.current_url, f"Expected redirect to index.php, got: {self.driver.current_url}")
+        # Wait for redirection to index.php, up to 10 seconds
+        try:
+            WebDriverWait(self.driver, 10).until(
+                lambda d: "index.php" in d.current_url
+            )
+        except Exception as e:
+            self.fail(f"Redirect to index.php failed. Current URL: {self.driver.current_url}")
+
+        self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
         self.driver.get(f"{self.base_url}/index.php")
