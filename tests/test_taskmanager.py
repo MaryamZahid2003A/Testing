@@ -2,7 +2,6 @@ import unittest
 import time
 import random
 import string
-import tempfile
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -16,14 +15,10 @@ class TaskManagerTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         options = Options()
-        options.add_argument('--headless')
+        options.add_argument('--headless')  # Comment out for debugging visually
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--window-size=1920,1080')
-
-        # ✅ Use a unique temporary directory to avoid session conflict
-        user_data_dir = tempfile.mkdtemp()
-        options.add_argument(f'--user-data-dir={user_data_dir}')
 
         chrome_service = Service("/usr/bin/chromedriver")
         cls.driver = webdriver.Chrome(service=chrome_service, options=options)
@@ -48,7 +43,10 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
 
-        WebDriverWait(self.driver, 10).until(EC.url_contains("index.php"))
+        # Wait for redirect to index.php
+        WebDriverWait(self.driver, 10).until(
+            EC.url_contains("index.php")
+        )
         self.assertIn("index.php", self.driver.current_url, f"Expected redirect to index.php, got: {self.driver.current_url}")
 
     def test_03_task_appears_on_dashboard(self):
