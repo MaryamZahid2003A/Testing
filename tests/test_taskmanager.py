@@ -2,31 +2,45 @@ import unittest
 import time
 import random
 import string
+import logging
+from datetime import datetime
 from selenium import webdriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import NoAlertPresentException
-from datetime import datetime
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 class NotesAppTest(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
-        options = Options()
-        options.add_argument('--headless')
-        options.add_argument('--disable-gpu')
-        options.add_argument('--window-size=1920,1080')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-        cls.driver = webdriver.Chrome(options=options)
-        cls.driver.implicitly_wait(5)
-        cls.wait = WebDriverWait(cls.driver, 10)
-        cls.base_url = "http://localhost"
-        cls.email = f"testuser{datetime.now().strftime('%Y%m%d%H%M%S')}@example.com"
-        cls.password = "password"
-        cls.username = "testuser1"
+        try:
+            chrome_options = Options()
+            chrome_options.add_argument('--headless')
+            chrome_options.add_argument('--disable-gpu')
+            chrome_options.add_argument('--window-size=1920,1080')
+            chrome_options.add_argument('--no-sandbox')
+            chrome_options.add_argument('--disable-dev-shm-usage')
+
+            # ✅ Use Service to define driver path explicitly
+            chrome_service = Service("/usr/bin/chromedriver")
+
+            cls.driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
+            cls.driver.implicitly_wait(5)
+            cls.wait = WebDriverWait(cls.driver, 10)
+
+            # Basic test credentials and test data
+            cls.base_url = "http://localhost"
+            cls.email = f"testuser{datetime.now().strftime('%Y%m%d%H%M%S')}@example.com"
+            cls.password = "password"
+            cls.username = "testuser1"
+        except Exception as e:
+            logging.error("Error during setup: %s", str(e))
+            raise
 
     @classmethod
     def tearDownClass(cls):
@@ -59,8 +73,7 @@ class NotesAppTest(unittest.TestCase):
         self.driver.find_element(By.XPATH, "//button[contains(text(),'Add Note')]").click()
         self.wait.until(EC.presence_of_element_located((By.CLASS_NAME, "note-card")))
         notes = self.driver.find_elements(By.CLASS_NAME, "note-card")
-        found = any("Test Note" in note.text for note in notes)
-        self.assertTrue(found)
+        self.assertTrue(any("Test Note" in note.text for note in notes))
 
     def test_04_edit_note(self):
         self.login()
@@ -141,6 +154,7 @@ class NotesAppTest(unittest.TestCase):
         self.driver.refresh()
         time.sleep(2)
         self.assertIn("index.php", self.driver.current_url)
+
 
 if __name__ == "__main__":
     unittest.main()
