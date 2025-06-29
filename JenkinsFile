@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Clone Repo') {
+            steps {
+                git 'https://github.com/<your-username>/<your-repo>.git'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    docker.build('taskmanager-test')
+                }
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                script {
+                    docker.image('taskmanager-test').inside {
+                        sh 'python3 -m unittest -v tests/test_taskmanager.py'
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ All tests passed successfully.'
+        }
+        failure {
+            echo '❌ Tests failed. Check the test logs above.'
+        }
+    }
+}
