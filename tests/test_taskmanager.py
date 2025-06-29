@@ -34,7 +34,7 @@ class NotesAppTest(unittest.TestCase):
             cls.wait = WebDriverWait(cls.driver, 10)
 
             # Basic test credentials and test data
-            cls.base_url = "http://107.22.131.95"
+            cls.base_url = "http://localhost"
             cls.email = f"testuser{datetime.now().strftime('%Y%m%d%H%M%S')}@example.com"
             cls.password = "password"
             cls.username = "testuser1"
@@ -48,6 +48,7 @@ class NotesAppTest(unittest.TestCase):
 
     def login(self, email=None, password=None):
         self.driver.get(f"{self.base_url}/login.php")
+        print("Opening URL:", self.base_url)
         self.wait.until(EC.visibility_of_element_located((By.NAME, "email"))).send_keys(email or self.email)
         self.driver.find_element(By.NAME, "password").send_keys(password or self.password)
         self.driver.find_element(By.XPATH, "//button[contains(text(),'Login')]").click()
