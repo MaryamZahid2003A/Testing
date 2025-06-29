@@ -100,7 +100,13 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("Invalid password", self.driver.page_source)
 
-    
+    def test_10_login_with_nonexistent_user(self):
+        self.driver.get(f"{self.base_url}/login.php")
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.NAME, "username")))
+        self.driver.find_element(By.NAME, "username").send_keys("notAUser")
+        self.driver.find_element(By.NAME, "password").send_keys("something")
+        self.driver.find_element(By.TAG_NAME, "button").click()
+        self.assertIn("User not found", self.driver.page_source)
 
     @classmethod
     def tearDownClass(cls):
