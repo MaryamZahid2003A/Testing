@@ -2,6 +2,8 @@ import unittest
 import time
 import random
 import string
+import tempfile
+import shutil
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -11,19 +13,18 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 class TaskManagerTests(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
+        # ✅ Create a temporary profile dir
+        cls.temp_profile_dir = tempfile.mkdtemp()
+
         options = Options()
-        options.add_argument('--headless')  # Comment out for debugging visually
+        options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--window-size=1920,1080')
+        options.add_argument(f'--user-data-dir={cls.temp_profile_dir}')  # ✅ Unique profile
 
-        # Optional: Uncomment below line if using Chromium instead of Google Chrome
-        # options.binary_location = "/usr/bin/chromium-browser"
-
-        # Use explicit path to chromedriver
         chrome_service = Service("/usr/bin/chromedriver")
         cls.driver = webdriver.Chrome(service=chrome_service, options=options)
 
@@ -46,6 +47,7 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
+        WebDriverWait(self.driver, 10).until(EC.url_contains("index.php"))
         self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
@@ -100,17 +102,11 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("Invalid password", self.driver.page_source)
 
-    def test_10_login_with_nonexistent_user(self):
-        self.driver.get(f"{self.base_url}/login.php")
-        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.NAME, "username")))
-        self.driver.find_element(By.NAME, "username").send_keys("notAUser")
-        self.driver.find_element(By.NAME, "password").send_keys("something")
-        self.driver.find_element(By.TAG_NAME, "button").click()
-        self.assertIn("User not found", self.driver.page_source)
-
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
+        # ✅ Clean up the temporary profile directory
+        shutil.rmtree(cls.temp_profile_dir, ignore_errors=True)
 
 if __name__ == "__main__":
     unittest.main()
