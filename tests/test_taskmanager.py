@@ -1,22 +1,32 @@
 import unittest
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
 import random
 import string
+
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class TaskManagerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
         options = Options()
-        options.add_argument('--headless')  # Disable this line for debugging visually
+        options.add_argument('--headless')  # Comment out for debugging visually
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-        cls.driver = webdriver.Chrome(options=options)
+        options.add_argument('--window-size=1920,1080')
+
+        # Optional: Uncomment below line if using Chromium instead of Google Chrome
+        # options.binary_location = "/usr/bin/chromium-browser"
+
+        # Use explicit path to chromedriver
+        chrome_service = Service("/usr/bin/chromedriver")
+        cls.driver = webdriver.Chrome(service=chrome_service, options=options)
+
         cls.driver.implicitly_wait(5)
         cls.base_url = "http://localhost"
         cls.username = ''.join(random.choices(string.ascii_lowercase, k=6))
@@ -28,7 +38,6 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
         self.driver.find_element(By.NAME, "password").send_keys(type(self).password)
         self.driver.find_element(By.TAG_NAME, "button").click()
-        print("Signup page:", self.driver.current_url)
         self.assertIn("index.php", self.driver.current_url)
 
     def test_02_add_task(self):
@@ -37,13 +46,11 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
-        print("Add task page:", self.driver.current_url)
         self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
         self.driver.get(f"{self.base_url}/index.php")
         tasks = self.driver.find_elements(By.TAG_NAME, "tr")
-        print("Dashboard task count:", len(tasks))
         self.assertTrue(any("Test Task" in t.text for t in tasks))
 
     def test_04_edit_task(self):
@@ -104,3 +111,6 @@ class TaskManagerTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
+
+if __name__ == "__main__":
+    unittest.main()
