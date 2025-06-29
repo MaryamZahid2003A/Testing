@@ -1,27 +1,41 @@
 pipeline {
     agent any
 
+    environment {
+        COMPOSE_PROJECT_NAME = 'taskmanager_ci'
+        COMPOSE_FILE = 'docker-compose.yml'
+    }
+
     stages {
-        stage('Clone Repo') {
+        stage('Clone Repository') {
             steps {
-                git 'https://github.com/MaryamZahid2003A/Testing.git'
+                git branch: 'main', url: 'https://github.com/MaryamZahid2003A/Testing.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build and Start Containers') {
             steps {
                 script {
-                    docker.build('taskmanager-test')
+                    echo "🛠️ Shutting down old containers (if any)..."
+                    sh "docker-compose -p ${COMPOSE_PROJECT_NAME} -f ${COMPOSE_FILE} down || true"
+
+                    echo "🔧 Building containers..."
+                    sh "docker-compose -p ${COMPOSE_PROJECT_NAME} -f ${COMPOSE_FILE} build --no-cache"
+
+                    echo "🚀 Starting containers..."
+                    sh "docker-compose -p ${COMPOSE_PROJECT_NAME} -f ${COMPOSE_FILE} up -d --remove-orphans"
+
+                    echo "⏳ Waiting for DB to initialize..."
+                    sh "sleep 15"  // Increase if DB takes longer
                 }
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Python Tests') {
             steps {
                 script {
-                    docker.image('taskmanager-test').inside {
-                        sh 'python3 -m unittest -v tests/test_taskmanager.py'
-                    }
+                    echo "🧪 Running unit tests inside 'web' container..."
+                    sh "docker exec taskmanager_web python3 -m unittest discover -s tests -p 'test_*.py' -v"
                 }
             }
         }
@@ -29,10 +43,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ All tests passed successfully.'
+            echo '✅ All tests passed successfully!'
         }
         failure {
-            echo '❌ Tests failed. Check the test logs above.'
+            echo '❌ Tests failed. Check logs for more details.'
         }
     }
 }
