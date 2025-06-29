@@ -1,24 +1,30 @@
-# ✅ Use lightweight Python base image
+# ✅ Base image
 FROM python:3.12-slim
 
-# ✅ Set working directory inside container
+# ✅ Set working directory
 WORKDIR /app
 
-# ✅ Install system packages: Apache, PHP, Selenium dependencies
+# ✅ Install system dependencies
 RUN apt-get update && apt-get install -y \
     apache2 \
     php \
     libapache2-mod-php \
     php-mysqli \
-    chromium \
-    chromium-driver \
     curl \
-    unzip \
     wget \
+    unzip \
     nano \
-    && rm -rf /var/lib/apt/lists/*
+    gnupg \
+    ca-certificates \
+    fonts-liberation \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# ✅ Set environment variables for Selenium to locate Chromium
+# ✅ Install Chromium browser & driver from official source
+RUN apt-get update && \
+    apt-get install -y chromium chromium-driver --no-install-recommends || echo "Chromium not available on slim base" && \
+    rm -rf /var/lib/apt/lists/*
+
+# ✅ Set Chromium path for Selenium
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER=/usr/bin/chromedriver
 
@@ -26,26 +32,24 @@ ENV CHROMEDRIVER=/usr/bin/chromedriver
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ Clean Apache default HTML folder & copy your PHP app
-RUN rm -rf /var/www/html/*
+# ✅ Copy app and tests
 COPY app/ /var/www/html/
-RUN chown -R www-data:www-data /var/www/html
-
-# ✅ Copy test files and startup script
 COPY tests/ /app/tests/
 COPY entrypoint.sh .
 
-# ✅ Enable Apache modules & set basic config
+# ✅ Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# ✅ Enable Apache modules
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod rewrite
 
-# ✅ Show PHP errors (optional for dev/debug)
+# ✅ Enable PHP error display for debugging
 RUN echo "display_errors=On\nerror_reporting=E_ALL" >> $(php --ini | grep "Loaded Configuration" | awk '{print $4}')
 
-# ✅ Ensure entrypoint is executable
+# ✅ Make entrypoint executable
 RUN chmod +x entrypoint.sh
 
-# ✅ Expose Apache web port
 EXPOSE 80
 
 # ✅ Default command
