@@ -34,7 +34,7 @@ class NotesAppTest(unittest.TestCase):
             cls.wait = WebDriverWait(cls.driver, 10)
 
             # Basic test credentials and test data
-            cls.base_url = "http://localhost"
+            cls.base_url = "http://107.22.131.95"
             cls.email = f"testuser{datetime.now().strftime('%Y%m%d%H%M%S')}@example.com"
             cls.password = "password"
             cls.username = "testuser1"
