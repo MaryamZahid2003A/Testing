@@ -20,6 +20,10 @@ class TaskManagerTests(unittest.TestCase):
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--window-size=1920,1080')
 
+        # Optional: Uncomment below line if using Chromium instead of Google Chrome
+        # options.binary_location = "/usr/bin/chromium-browser"
+
+        # Use explicit path to chromedriver
         chrome_service = Service("/usr/bin/chromedriver")
         cls.driver = webdriver.Chrome(service=chrome_service, options=options)
 
@@ -42,12 +46,7 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
-
-        # Wait for redirect to index.php
-        WebDriverWait(self.driver, 10).until(
-            EC.url_contains("index.php")
-        )
-        self.assertIn("index.php", self.driver.current_url, f"Expected redirect to index.php, got: {self.driver.current_url}")
+        self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
         self.driver.get(f"{self.base_url}/index.php")
@@ -100,6 +99,8 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "password").send_keys("wrongpass")
         self.driver.find_element(By.TAG_NAME, "button").click()
         self.assertIn("Invalid password", self.driver.page_source)
+
+    
 
     @classmethod
     def tearDownClass(cls):
