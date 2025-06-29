@@ -2,8 +2,6 @@ import unittest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import time
 import random
 import string
@@ -18,39 +16,32 @@ class TaskManagerTests(unittest.TestCase):
         options.add_argument('--disable-dev-shm-usage')
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(5)
-        cls.base_url = "http://107.22.131.95"  # Update this if needed
+        cls.base_url = "http://107.22.131.95"  # Updated with your server IP
         cls.username = ''.join(random.choices(string.ascii_lowercase, k=6))
         cls.password = "test123"
 
     def test_01_signup(self):
         self.driver.get(f"{self.base_url}/signup.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "username")))
         self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
         self.driver.find_element(By.NAME, "password").send_keys(type(self).password)
         self.driver.find_element(By.TAG_NAME, "button").click()
-        print("Signup page:", self.driver.current_url)
         self.assertIn("index.php", self.driver.current_url)
 
     def test_02_add_task(self):
         self.driver.get(f"{self.base_url}/add.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "title")))
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
-        print("Add task page:", self.driver.current_url)
         self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
         self.driver.get(f"{self.base_url}/index.php")
         tasks = self.driver.find_elements(By.TAG_NAME, "tr")
-        print("Dashboard task count:", len(tasks))
         self.assertTrue(any("Test Task" in t.text for t in tasks))
 
     def test_04_edit_task(self):
         self.driver.get(f"{self.base_url}/index.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Edit")))
         self.driver.find_element(By.LINK_TEXT, "Edit").click()
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "title")))
         title_input = self.driver.find_element(By.NAME, "title")
         title_input.clear()
         title_input.send_keys("Updated Task")
@@ -63,7 +54,6 @@ class TaskManagerTests(unittest.TestCase):
 
     def test_06_delete_task(self):
         self.driver.get(f"{self.base_url}/index.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Delete")))
         self.driver.find_element(By.LINK_TEXT, "Delete").click()
         alert = self.driver.switch_to.alert
         alert.accept()
@@ -72,13 +62,11 @@ class TaskManagerTests(unittest.TestCase):
 
     def test_07_logout(self):
         self.driver.get(f"{self.base_url}/index.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, "Logout")))
         self.driver.find_element(By.LINK_TEXT, "Logout").click()
         self.assertIn("login.php", self.driver.current_url)
 
     def test_08_login_with_correct_credentials(self):
         self.driver.get(f"{self.base_url}/login.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "username")))
         self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
         self.driver.find_element(By.NAME, "password").send_keys(type(self).password)
         self.driver.find_element(By.TAG_NAME, "button").click()
@@ -87,7 +75,6 @@ class TaskManagerTests(unittest.TestCase):
     def test_09_login_with_wrong_password(self):
         self.driver.get(f"{self.base_url}/logout.php")
         self.driver.get(f"{self.base_url}/login.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "username")))
         self.driver.find_element(By.NAME, "username").send_keys(type(self).username)
         self.driver.find_element(By.NAME, "password").send_keys("wrongpass")
         self.driver.find_element(By.TAG_NAME, "button").click()
@@ -95,7 +82,6 @@ class TaskManagerTests(unittest.TestCase):
 
     def test_10_login_with_nonexistent_user(self):
         self.driver.get(f"{self.base_url}/login.php")
-        WebDriverWait(self.driver, 10).until(EC.presence_of_element_located((By.NAME, "username")))
         self.driver.find_element(By.NAME, "username").send_keys("notAUser")
         self.driver.find_element(By.NAME, "password").send_keys("something")
         self.driver.find_element(By.TAG_NAME, "button").click()
