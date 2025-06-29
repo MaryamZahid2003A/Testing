@@ -1,10 +1,10 @@
-# Use lightweight Python base
+# ✅ Use lightweight Python base image
 FROM python:3.12-slim
 
-# Set working directory
+# ✅ Set working directory inside container
 WORKDIR /app
 
-# Install Apache, PHP, and Chromium for Selenium
+# ✅ Install system packages: Apache, PHP, Selenium dependencies
 RUN apt-get update && apt-get install -y \
     apache2 \
     php \
@@ -18,34 +18,35 @@ RUN apt-get update && apt-get install -y \
     nano \
     && rm -rf /var/lib/apt/lists/*
 
-# Set env vars for Selenium
+# ✅ Set environment variables for Selenium to locate Chromium
 ENV CHROME_BIN=/usr/bin/chromium
 ENV CHROMEDRIVER=/usr/bin/chromedriver
 
-# Install Python dependencies
+# ✅ Install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ Copy only PHP app files to Apache's web root
-RUN rm -rf /var/www/html/*   # Remove all existing files
-COPY app/ /var/www/html/     
+# ✅ Clean Apache default HTML folder & copy your PHP app
+RUN rm -rf /var/www/html/*
+COPY app/ /var/www/html/
 RUN chown -R www-data:www-data /var/www/html
 
-# ✅ Copy test and support scripts to container
+# ✅ Copy test files and startup script
 COPY tests/ /app/tests/
 COPY entrypoint.sh .
 
-# Enable Apache rewrite and set server name
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && a2enmod rewrite
+# ✅ Enable Apache modules & set basic config
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
+    a2enmod rewrite
 
-# Optional: show PHP errors
+# ✅ Show PHP errors (optional for dev/debug)
 RUN echo "display_errors=On\nerror_reporting=E_ALL" >> $(php --ini | grep "Loaded Configuration" | awk '{print $4}')
 
-# Ensure entrypoint is executable
+# ✅ Ensure entrypoint is executable
 RUN chmod +x entrypoint.sh
 
-# Expose Apache HTTP port
+# ✅ Expose Apache web port
 EXPOSE 80
 
-# Run Apache and Selenium test runner
+# ✅ Default command
 CMD ["./entrypoint.sh"]
