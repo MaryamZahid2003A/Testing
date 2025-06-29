@@ -130,7 +130,7 @@ if ($result->num_rows === 0) {
       <button type="submit">Add Task</button>
     </form>
     <div class="back-link">
-      <p><a href="index.php">BACK TO LIST</a></p>
+      <p><a href="index.php">BACK </a></p>
     </div>
   </div>
 </body>
