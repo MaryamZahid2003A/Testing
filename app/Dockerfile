@@ -26,14 +26,14 @@ ENV CHROMEDRIVER=/usr/bin/chromedriver
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ✅ Copy PHP files to Apache root
-COPY app/ /var/www/html/
-
-# ❌ Remove default Apache page
-RUN rm -f /var/www/html/index.html
-
-# Set proper permissions
+# ✅ Copy only PHP app files to Apache's web root
+RUN rm -rf /var/www/html/*   # Remove all existing files
+COPY app/ /var/www/html/     
 RUN chown -R www-data:www-data /var/www/html
+
+# ✅ Copy test and support scripts to container
+COPY tests/ /app/tests/
+COPY entrypoint.sh .
 
 # Enable Apache rewrite and set server name
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && a2enmod rewrite
@@ -41,10 +41,11 @@ RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && a2enmod rewrite
 # Optional: show PHP errors
 RUN echo "display_errors=On\nerror_reporting=E_ALL" >> $(php --ini | grep "Loaded Configuration" | awk '{print $4}')
 
-# Make the script executable
+# Ensure entrypoint is executable
 RUN chmod +x entrypoint.sh
 
+# Expose Apache HTTP port
 EXPOSE 80
 
-# Start Apache and run tests
+# Run Apache and Selenium test runner
 CMD ["./entrypoint.sh"]
