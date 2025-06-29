@@ -2,9 +2,6 @@ import unittest
 import time
 import random
 import string
-import os
-import tempfile
-import shutil
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -13,23 +10,20 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-
 class TaskManagerTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        # 🔐 Create a unique temporary profile directory
-        cls.temp_profile_dir = tempfile.mkdtemp()
-        os.makedirs(cls.temp_profile_dir, exist_ok=True)
-
         options = Options()
-        options.add_argument('--headless')  # Use headless mode for CI
+        options.add_argument('--headless')  # Comment out for debugging visually
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         options.add_argument('--window-size=1920,1080')
-        options.add_argument(f'--user-data-dir={cls.temp_profile_dir}')
-        options.add_argument('--disable-features=UseChromeOSDirectFS,ChromeWhatsNewUI')  # Prevent lock issues
 
+        # Optional: Uncomment below line if using Chromium instead of Google Chrome
+        # options.binary_location = "/usr/bin/chromium-browser"
+
+        # Use explicit path to chromedriver
         chrome_service = Service("/usr/bin/chromedriver")
         cls.driver = webdriver.Chrome(service=chrome_service, options=options)
 
@@ -52,7 +46,6 @@ class TaskManagerTests(unittest.TestCase):
         self.driver.find_element(By.NAME, "title").send_keys("Test Task")
         self.driver.find_element(By.NAME, "description").send_keys("This is a test description.")
         self.driver.find_element(By.TAG_NAME, "button").click()
-        WebDriverWait(self.driver, 10).until(EC.url_contains("index.php"))
         self.assertIn("index.php", self.driver.current_url)
 
     def test_03_task_appears_on_dashboard(self):
@@ -73,7 +66,7 @@ class TaskManagerTests(unittest.TestCase):
 
     def test_05_verify_task_updated(self):
         self.driver.get(f"{self.base_url}/index.php")
-        self.assertIn("Updated Task", self.driver.page_source)
+        self.assertTrue("Updated Task" in self.driver.page_source)
 
     def test_06_delete_task(self):
         self.driver.get(f"{self.base_url}/index.php")
@@ -110,8 +103,6 @@ class TaskManagerTests(unittest.TestCase):
     @classmethod
     def tearDownClass(cls):
         cls.driver.quit()
-        shutil.rmtree(cls.temp_profile_dir, ignore_errors=True)
-
 
 if __name__ == "__main__":
     unittest.main()
