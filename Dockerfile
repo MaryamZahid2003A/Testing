@@ -1,10 +1,10 @@
-# ✅ Use lightweight Python base image
-FROM python:3.12-slim
+# ✅ Use full Python base image for compatibility
+FROM python:3.12
 
 # ✅ Set working directory inside container
 WORKDIR /app
 
-# ✅ Install system packages: Apache, PHP, Selenium dependencies
+# ✅ Install required system packages (including Chromium)
 RUN apt-get update && apt-get install -y \
     apache2 \
     php \
@@ -39,14 +39,14 @@ COPY entrypoint.sh .
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf && \
     a2enmod rewrite
 
-# ✅ Show PHP errors (optional for dev/debug)
+# ✅ Show PHP errors (useful for debugging in dev)
 RUN echo "display_errors=On\nerror_reporting=E_ALL" >> $(php --ini | grep "Loaded Configuration" | awk '{print $4}')
 
-# ✅ Ensure entrypoint is executable
+# ✅ Ensure entrypoint script is executable
 RUN chmod +x entrypoint.sh
 
-# ✅ Expose Apache web port
+# ✅ Expose Apache default port
 EXPOSE 80
 
-# ✅ Default command
+# ✅ Start entrypoint script (Apache + tests)
 CMD ["./entrypoint.sh"]
