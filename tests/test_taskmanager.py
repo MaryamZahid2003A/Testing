@@ -18,7 +18,7 @@ class TaskManagerTests(unittest.TestCase):
         options.add_argument('--disable-dev-shm-usage')
         cls.driver = webdriver.Chrome(options=options)
         cls.driver.implicitly_wait(5)
-        cls.base_url = "http://host.docker.internal"  # Update this if needed
+        cls.base_url = "http://107.22.131.95"  # Update this if needed
         cls.username = ''.join(random.choices(string.ascii_lowercase, k=6))
         cls.password = "test123"
 
