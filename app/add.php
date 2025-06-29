@@ -3,27 +3,49 @@ session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
+// Redirect to login if not logged in
 if (!isset($_SESSION['username'])) {
     header("Location: login.php");
     exit;
 }
+
 include 'db.php';
 
+$error = "";
+
+// Get current user's ID securely
 $user = $_SESSION['username'];
-$res = $conn->query("SELECT id FROM users WHERE username = '$user'");
-$row = $res->fetch_assoc();
-$user_id = $row['id'];
+$stmt = $conn->prepare("SELECT id FROM users WHERE username = ?");
+$stmt->bind_param("s", $user);
+$stmt->execute();
+$result = $stmt->get_result();
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title = $conn->real_escape_string($_POST['title']);
-    $description = $conn->real_escape_string($_POST['description']);
+if ($result->num_rows === 0) {
+    $error = "User not found.";
+} else {
+    $row = $result->fetch_assoc();
+    $user_id = $row['id'];
 
-    $sql = "INSERT INTO tasks (title, description, user_id) VALUES ('$title', '$description', $user_id)";
-    if ($conn->query($sql)) {
-        header("Location: index.php");
-        exit;
-    } else {
-        echo "Error: " . $conn->error;
+    // Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $title = trim($_POST['title']);
+        $description = trim($_POST['description']);
+
+        if (!empty($title) && !empty($description)) {
+            // Use prepared statement
+            $stmt = $conn->prepare("INSERT INTO tasks (title, description, user_id) VALUES (?, ?, ?)");
+            $stmt->bind_param("ssi", $title, $description, $user_id);
+
+            if ($stmt->execute()) {
+                header("Location: index.php");
+                exit;
+            } else {
+                $error = "Database error: " . $conn->error;
+            }
+        } else {
+            $error = "Please fill in all fields.";
+        }
     }
 }
 ?>
@@ -91,11 +113,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     .back-link a:hover {
       text-decoration: underline;
     }
+    .error {
+      color: red;
+      text-align: center;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
   <div class="add-container">
     <h2>Add New Task</h2>
+    <?php if (!empty($error)) echo "<p class='error'>$error</p>"; ?>
     <form action="add.php" method="POST">
       <input type="text" name="title" placeholder="Task Title" required />
       <textarea name="description" rows="5" placeholder="Task Description" required></textarea>
